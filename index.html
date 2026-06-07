@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEHER · Factory Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1f7;--bg2:#e8ecf4;--panel:#ffffff;--panel2:#f5f7fb;--panel3:#e6eaf2;--border:#e4e8f0;--border2:#d2d9e6;--text:#1b2336;--dim:#aab2c5;--dim2:#69748f;--cyan:#0096c0;--cyan2:#007fa6;--green:#10a058;--green2:#0c8a4a;--orange:#dd7a00;--red:#db2f2f;--yellow:#bf9a00;--purple:#6640d6;--pink:#d6336c;--font:'Rajdhani',sans-serif;--mono:'JetBrains Mono',monospace;--r:5px;--r2:10px;}
+*{box-sizing:border-box;margin:0;padding:0}html{font-size:13.5px}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(20,40,90,0.012) 2px,rgba(20,40,90,0.012) 4px);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(1200px 600px at 80% -10%,rgba(0,150,192,.05),transparent),radial-gradient(900px 500px at 0% 100%,rgba(102,64,214,.045),transparent);pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;display:flex;min-height:100vh}
+.side{width:212px;flex-shrink:0;border-right:1px solid var(--border2);padding:18px 0;position:sticky;top:0;height:100vh;background:rgba(255,255,255,.72);backdrop-filter:blur(8px)}
+.brand{padding:0 20px 18px;border-bottom:1px solid var(--border)}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.brand b{font-size:1.05rem;letter-spacing:.04em}.brand small{display:block;font-family:var(--mono);font-size:.55rem;color:var(--dim2);letter-spacing:.2em;margin-top:3px}
+.navsec{font-family:var(--mono);font-size:.55rem;letter-spacing:.2em;color:var(--dim);padding:18px 20px 7px;text-transform:uppercase}
+.nav{display:flex;align-items:center;gap:11px;padding:9px 20px;cursor:pointer;color:var(--dim2);font-size:.95rem;border-left:2px solid transparent;transition:.15s}
+.nav:hover{color:var(--text);background:var(--panel)}
+.nav.on{color:var(--cyan);border-left-color:var(--cyan);background:linear-gradient(90deg,rgba(0,212,255,.08),transparent)}
+.nav .ic{width:17px;text-align:center}
+.main{flex:1;min-width:0;padding:0 26px 80px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:13px;flex-wrap:wrap;padding:16px 0 14px;margin-bottom:8px;background:linear-gradient(180deg,var(--bg) 60%,rgba(238,241,247,.75));backdrop-filter:blur(6px);border-bottom:1px solid var(--border)}
+.pagetitle{font-size:1.5rem;font-weight:700;letter-spacing:.02em}.pagetitle small{display:block;font-family:var(--mono);font-size:.6rem;color:var(--dim2);letter-spacing:.16em;font-weight:400;margin-top:1px}
+.spacer{flex:1}
+.field{display:flex;flex-direction:column;gap:3px}.field label{font-family:var(--mono);font-size:.54rem;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+select,input[type=number]{background:var(--panel2);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:.8rem;padding:7px 9px;border-radius:var(--r);outline:none}
+select:focus{border-color:var(--cyan2)}
+.chip{font-family:var(--mono);font-size:.6rem;font-weight:600;letter-spacing:.08em;padding:5px 11px;border-radius:20px;border:1px solid;text-transform:uppercase;white-space:nowrap}
+.chip-green{color:var(--green);border-color:var(--green2);background:rgba(0,230,118,.07)}.chip-red{color:var(--red);border-color:var(--red);background:rgba(255,61,61,.07)}.chip-dim{color:var(--dim2);border-color:var(--border2)}
+.btn{font-family:var(--mono);font-size:.72rem;font-weight:700;letter-spacing:.06em;padding:9px 15px;border:none;border-radius:var(--r);cursor:pointer;text-transform:uppercase;transition:.15s}
+.btn-go{background:var(--cyan);color:var(--bg)}.btn-go:hover{box-shadow:0 0 20px rgba(0,212,255,.4)}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--dim2)}.btn-ghost:hover{border-color:var(--cyan2);color:var(--cyan)}
+.page{display:none;animation:fade .35s ease}.page.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.sec-t{font-family:var(--mono);font-size:.68rem;letter-spacing:.2em;color:var(--cyan);text-transform:uppercase;margin:26px 0 12px;display:flex;align-items:center;gap:10px}
+.sec-t::before{content:'';width:14px;height:1px;background:var(--cyan)}.sec-t .n{color:var(--dim)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:1100px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--border2);border-radius:var(--r2);padding:16px 18px;box-shadow:0 1px 3px rgba(20,40,90,.04)}
+.card h3{font-size:1.02rem;font-weight:600;letter-spacing:.02em}.card .sub{font-family:var(--mono);font-size:.58rem;color:var(--dim2);letter-spacing:.06em;margin:2px 0 14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--border2);border-radius:var(--r2);padding:15px 16px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(20,40,90,.04)}
+.kpi .v{font-family:var(--mono);font-size:1.6rem;font-weight:700;line-height:1}.kpi .l{font-family:var(--mono);font-size:.55rem;letter-spacing:.13em;color:var(--dim2);text-transform:uppercase;margin-top:7px}.kpi .s{font-size:.74rem;color:var(--dim);margin-top:2px}
+.kpi::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent,var(--cyan))}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;color:var(--dim2);text-transform:uppercase;text-align:right;padding:9px 10px;border-bottom:1px solid var(--border2);position:sticky;top:0;background:var(--bg);z-index:2}
+th:first-child,td:first-child{text-align:left}
+td{padding:8px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:.78rem}
+tr:hover td{background:var(--panel2)}
+.tbl-wrap{max-height:560px;overflow:auto;border:1px solid var(--border2);border-radius:var(--r2)}
+.searchbar{margin-bottom:10px}.searchbar input{width:100%;background:var(--panel2);border:1px solid var(--border2);color:var(--text);font-family:var(--font);font-size:.92rem;padding:9px 13px;border-radius:var(--r);outline:none}
+.gbadge{font-family:var(--mono);font-size:.56rem;font-weight:700;padding:2px 6px;border-radius:3px}
+.gA{background:rgba(0,212,255,.15);color:var(--cyan)}.gB{background:rgba(255,152,0,.15);color:var(--orange)}.gC{background:rgba(124,77,255,.18);color:#b39dff}
+.mach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));gap:16px}
+.mcard{background:var(--panel);border:1px solid var(--border2);border-radius:var(--r2);overflow:hidden}
+.mcard.over{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}
+.mcard-hd{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.mcard-hd .mi{font-size:1.1rem}.mcard-hd .mt{font-weight:700;font-size:1.05rem}.mcard-hd .mt small{font-family:var(--mono);font-size:.58rem;color:var(--dim2);font-weight:400}
+.util-wrap{flex:1;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.util-bar{width:130px;height:7px;background:var(--panel3);border-radius:4px;overflow:hidden}.util-fill{height:100%;border-radius:4px;transition:width .6s}.util-pct{font-family:var(--mono);font-size:.66rem;font-weight:600}
+.seqrow{display:flex;align-items:center;gap:10px;padding:7px 16px;font-size:.86rem}.seqrow:hover{background:var(--panel2)}
+.seqno{font-family:var(--mono);font-size:.6rem;color:var(--bg);background:var(--dim2);width:18px;height:18px;display:grid;place-items:center;border-radius:3px;flex-shrink:0}.seqrow.first .seqno{background:var(--cyan)}
+.seqnm{flex:1;line-height:1.15}.seqnm .meta{font-family:var(--mono);font-size:.57rem;color:var(--dim2);margin-top:1px}
+.seqt{font-family:var(--mono);font-size:.66rem;color:var(--dim2);text-align:right}.seqt b{color:var(--text);font-weight:500}
+.setup-chip{font-family:var(--mono);font-size:.54rem;color:var(--orange);background:rgba(255,152,0,.1);padding:1px 5px;border-radius:3px}
+.gantt{background:var(--panel);border:1px solid var(--border2);border-radius:var(--r2);padding:18px}
+.grow{display:flex;align-items:center;gap:12px;margin-bottom:11px}
+.glabel{width:112px;font-family:var(--mono);font-size:.74rem;color:var(--text);text-align:right;flex-shrink:0;font-weight:500}
+.gtrack{flex:1;height:30px;background:var(--panel3);border-radius:4px;position:relative;overflow:hidden}
+.gblk{position:absolute;top:0;height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.66rem;font-weight:600;color:#08080a;overflow:hidden;white-space:nowrap;border-right:1px solid rgba(255,255,255,.5)}
+.gutil{width:44px;font-family:var(--mono);font-size:.74rem;font-weight:700;flex-shrink:0}
+.gaxis2{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.58rem;color:var(--dim);margin-left:124px;margin-right:48px;margin-top:6px}
+.gsetup{position:absolute;top:0;height:100%;background:repeating-linear-gradient(45deg,var(--orange),var(--orange) 3px,transparent 3px,transparent 6px);opacity:.5}
+.gcap{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--red);z-index:5}
+.gaxis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.54rem;color:var(--dim);margin-left:104px;margin-top:5px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:.58rem;color:var(--dim2);margin-top:12px}.legend span{display:flex;align-items:center;gap:6px}.lg-sw{width:12px;height:12px;border-radius:2px}
+.heat{font-size:.7rem;border-collapse:separate;border-spacing:2px}
+.heat td{font-family:var(--mono);font-size:.62rem;text-align:center;padding:5px 4px;border-radius:3px;border:none}
+.heat td:first-child{text-align:right;color:var(--dim2);background:transparent;min-width:74px}.heat th{position:static;background:transparent;text-align:center;padding:4px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}.bar-lab{width:64px;font-family:var(--mono);font-size:.66rem;color:var(--dim2);text-align:right}
+.bar-track{flex:1;height:14px;background:var(--panel3);border-radius:3px;overflow:hidden}.bar-fill{height:100%;border-radius:3px}.bar-val{font-family:var(--mono);font-size:.66rem;width:54px;text-align:right}
+.alert{display:flex;gap:11px;padding:12px 15px;border-radius:var(--r);border:1px solid;margin-bottom:9px;font-size:.88rem;align-items:flex-start}
+.al-red{border-color:var(--red);background:rgba(255,61,61,.06)}.al-orange{border-color:var(--orange);background:rgba(255,152,0,.06)}.al-green{border-color:var(--green2);background:rgba(0,230,118,.05)}.al-cyan{border-color:var(--cyan2);background:rgba(0,212,255,.05)}
+.drawer-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;display:none}.drawer-bg.on{display:block}
+.drawer{position:fixed;top:0;right:0;width:min(560px,92vw);height:100vh;background:var(--bg2);border-left:1px solid var(--border2);z-index:41;transform:translateX(100%);transition:.3s;display:flex;flex-direction:column}.drawer.on{transform:none}
+.drawer-hd{padding:18px 20px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:12px}
+.drawer-bd{flex:1;overflow:auto;padding:6px 0}
+.seg{display:flex;gap:6px}.seg div{font-family:var(--mono);font-size:.66rem;padding:6px 13px;border:1px solid var(--border2);border-radius:20px;cursor:pointer;color:var(--dim2)}.seg div.on{background:var(--cyan);color:var(--bg);border-color:var(--cyan);font-weight:700}
+.orow{display:flex;align-items:center;gap:10px;padding:8px 20px;border-bottom:1px solid var(--border)}.orow:hover{background:var(--panel)}
+.orow .nm{flex:1;font-size:.9rem;line-height:1.12}.orow .nm .meta{font-family:var(--mono);font-size:.55rem;color:var(--dim2)}
+.orow input{width:74px;text-align:right}
+.route-tag{font-family:var(--mono);font-size:.54rem;padding:2px 6px;border-radius:3px;min-width:58px;text-align:center}.rt-rob{background:rgba(0,230,118,.12);color:var(--green)}.rt-man{background:rgba(108,118,153,.15);color:var(--dim2)}
+.empty{text-align:center;padding:70px 20px;color:var(--dim);font-family:var(--mono);font-size:.8rem;letter-spacing:.08em}
+.hidden{display:none!important}
+.srcpill{font-family:var(--mono);font-size:.56rem;padding:3px 9px;border-radius:20px;letter-spacing:.06em}.src-live{background:rgba(0,212,255,.12);color:var(--cyan)}.src-model{background:rgba(124,77,255,.16);color:#b39dff}
+.cmp-slot{border:1px dashed var(--border2);border-radius:var(--r2);padding:16px;text-align:center}
+.cmp-slot.filled{border-style:solid}
+.delta-up{color:var(--green)}.delta-down{color:var(--red)}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><span class="dot"></span> <b>SEHER</b><small>FACTORY INTELLIGENCE</small></div>
+    <div class="navsec">General</div>
+    <div class="nav on" data-pg="overview" onclick="go('overview')"><span class="ic">⬡</span>Overview</div>
+    <div class="nav" data-pg="annual" onclick="go('annual')"><span class="ic">📅</span>Annual Review</div>
+    <div class="nav" data-pg="compare" onclick="go('compare')"><span class="ic">⇄</span>Compare Plans</div>
+    <div class="navsec">Planning</div>
+    <div class="nav" data-pg="schedule" onclick="go('schedule')"><span class="ic">⚙</span>Monthly Schedule</div>
+    <div class="nav" data-pg="plan" onclick="go('plan')"><span class="ic">📋</span>Plan Detail</div>
+    <div class="nav" data-pg="products" onclick="go('products')"><span class="ic">📦</span>Products</div>
+    <div class="navsec">Resources</div>
+    <div class="nav" data-pg="resources" onclick="go('resources')"><span class="ic">🤖</span>Machines</div>
+    <div class="nav" data-pg="inventory" onclick="go('inventory')"><span class="ic">🗄</span>Inventory</div>
+    <div class="navsec">Analysis</div>
+    <div class="nav" data-pg="alerts" onclick="go('alerts')"><span class="ic">⚠</span>Alerts</div>
+    <div class="nav" data-pg="eligibility" onclick="go('eligibility')"><span class="ic">🔗</span>Eligibility</div>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <div class="pagetitle" id="ptitle">Overview<small id="psub">FACTORY OVERVIEW</small></div>
+      <div class="spacer"></div>
+      <span class="srcpill src-live" id="srcPill">LIVE · EXAMPLE</span>
+      <div class="field"><label>Schedule Month</label><select id="month" onchange="onMonth()"></select></div>
+      <div class="field"><label>Year</label><select id="year" onchange="onYear()"></select></div>
+      <div class="field"><label>Robot Threshold (A)</label><select id="thr" onchange="recompute()"><option value="200">≥200</option><option value="400" selected>≥400</option><option value="600">≥600</option><option value="100000">Manual only</option></select></div>
+      <div class="field"><label>Util Cap</label><select id="umax" onchange="recompute()"><option value="0.7">70%</option><option value="0.8" selected>80%</option><option value="0.9">90%</option><option value="1">100%</option></select></div>
+      <button class="btn btn-go" onclick="openDrawer()">⊕ Orders / Data</button>
+      <span class="chip chip-dim" id="statusChip">—</span>
+    </div>
+    <div class="page on" id="page-overview"></div>
+    <div class="page" id="page-annual"></div>
+    <div class="page" id="page-compare"></div>
+    <div class="page" id="page-schedule"></div>
+    <div class="page" id="page-plan"></div>
+    <div class="page" id="page-products"></div>
+    <div class="page" id="page-resources"></div>
+    <div class="page" id="page-inventory"></div>
+    <div class="page" id="page-alerts"></div>
+    <div class="page" id="page-eligibility"></div>
+  </main>
+</div>
+<div class="drawer-bg" id="drawerBg" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-hd"><b style="font-size:1.1rem">Orders / Data Source</b><div class="spacer"></div><button class="btn btn-ghost" onclick="closeDrawer()">✕</button></div>
+  <div style="padding:14px 20px;border-bottom:1px solid var(--border)">
+    <div class="seg" style="margin-bottom:12px"><div class="on" id="seg-month" onclick="setEntry('month')">Monthly Entry</div><div id="seg-year" onclick="setEntry('year')">Yearly Entry</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-go" onclick="applyOrders()">Generate Schedule ▸</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('impModel').click()">📊 Load Model Output (.xlsx)</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('impOrders').click()">📥 Import Orders (Product,Qty)</button>
+      <button class="btn btn-ghost" onclick="loadExample()">Example</button>
+      <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    </div>
+    <div style="font-family:var(--mono);font-size:.56rem;color:var(--dim);margin-top:10px;line-height:1.6"><b style="color:var(--cyan2)">Monthly:</b> enter quantities for the selected month. <b style="color:var(--cyan2)">Yearly:</b> enter annual quantities, split across 12 months by working days. <b style="color:#b39dff">Model Output:</b> load a production_plan .xlsx — the full year fills from the real solution.</div>
+    <input type="file" id="impModel" accept=".xlsx,.xls" class="hidden"><input type="file" id="impOrders" accept=".xlsx,.xls" class="hidden">
+  </div>
+  <div style="padding:10px 20px 6px"><div class="seg" id="gtabs"><div class="on" data-g="ALL" onclick="setGroup('ALL')">All</div><div data-g="A" onclick="setGroup('A')">A</div><div data-g="B" onclick="setGroup('B')">B</div><div data-g="C" onclick="setGroup('C')">C</div></div></div>
+  <div class="searchbar" style="padding:6px 20px"><input id="osearch" placeholder="🔍 Search product..." oninput="renderOrderList()"></div>
+  <div class="drawer-bd" id="olist"></div>
+</div>
+<script>
+const PRODUCTS = [{"name": "ALANYA MOD15 / 3'LÜ KANEPE (DIŞ ARKA ASTAR)", "group": "A", "man_min": 3.5, "rob_min": 1.867, "robots": [5], "family": "ALANYA", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "ALANYA MOD16 / 2'LI KANEPE", "group": "A", "man_min": 3.2, "rob_min": 1.867, "robots": [], "family": "ALANYA", "type": "2'LI", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "ALONSO 3'LÜ KANEPE (DIŞ ARKA TELA SIYAH)", "group": "A", "man_min": 3.75, "rob_min": 1.867, "robots": [6], "family": "ALONSO", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "BOGOTA 3-2-1 KANEPE TAKIMI (GOLD AYAKLI) (DIŞ ARKA ORJINAL)", "group": "A", "man_min": 3.625, "rob_min": 1.867, "robots": [5], "family": "BOGOTA", "type": "3-2-1", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "ETNA 180x200 BAZA+BAŞLIK+YATAK (TORBA YAYLI)", "group": "A", "man_min": 8.0, "rob_min": 4.933, "robots": [2], "family": "ETNA", "type": "BAZA-TAM", "size": "180x200", "klass": "BAZA", "conf": "Yüksek"}, {"name": "KEMER 3'LÜ KANEPE (DIŞ ARKA ORJINAL)", "group": "A", "man_min": 3.75, "rob_min": 1.867, "robots": [6], "family": "KEMER", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "MIKADO 3-2-1 KOLTUK TAKIMI", "group": "A", "man_min": 4.5, "rob_min": 2.8, "robots": [5], "family": "MIKADO", "type": "3-2-1", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "MOLERON KANEPE", "group": "A", "man_min": 2.97, "rob_min": 3.113, "robots": [9], "family": "MOLERON", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "MYRA 3-2-1 KANEPE TAKIMI", "group": "A", "man_min": 3.625, "rob_min": 2.0, "robots": [5], "family": "MYRA", "type": "3-2-1", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "NAOMI 180x200 BAZA+BAŞLIK+YATAK", "group": "A", "man_min": 4.5, "rob_min": 1.833, "robots": [2], "family": "NAOMI", "type": "BAZA-TAM", "size": "180x200", "klass": "BAZA", "conf": "Yüksek"}, {"name": "ORLANDO 3-2-1 KANEPE TAKIMI", "group": "A", "man_min": 3.625, "rob_min": 1.872, "robots": [5], "family": "ORLANDO", "type": "3-2-1", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "ORLANDO MOD15 / 3'LÜ KANEPE", "group": "A", "man_min": 3.8, "rob_min": 1.867, "robots": [], "family": "ORLANDO", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "PANDORA 180x200 BAZA+BAŞLIK+YATAK", "group": "A", "man_min": 4.5, "rob_min": 1.833, "robots": [2], "family": "PANDORA", "type": "BAZA-TAM", "size": "180x200", "klass": "BAZA", "conf": "Yüksek"}, {"name": "ROVIGO MOD15 / 3'LÜ KOLTUK (ORJINAL DIŞ ARKA)", "group": "A", "man_min": 3.8, "rob_min": 1.867, "robots": [7], "family": "ROVIGO", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "SAN MARINO 3-2-1 KOLTUK TAKIMI (DIŞ ARKA ORJINAL)", "group": "A", "man_min": 4.0, "rob_min": 2.25, "robots": [5, 6], "family": "SAN MARINO", "type": "3-2-1", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "SAN MARINO MOD15 / 3'LÜ KOLTUK (DIŞ ARKA ORJINAL)", "group": "A", "man_min": 3.025, "rob_min": 1.75, "robots": [], "family": "SAN MARINO", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "SAN MARINO MOD16 / 2'LI KOLTUK", "group": "A", "man_min": 2.95, "rob_min": 1.667, "robots": [], "family": "SAN MARINO", "type": "2'LI", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "SINGAPUR 3-2-1 KOLTUK TAKIMI (GOLD AYAKLI)", "group": "A", "man_min": 11.75, "rob_min": 6.867, "robots": [3], "family": "SINGAPUR", "type": "3-2-1", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "SINGAPUR MOD15 / 3'LÜ KOLTUK (GOLD AYAKLI)", "group": "A", "man_min": 3.5, "rob_min": 2.0, "robots": [], "family": "SINGAPUR", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "SINGAPUR MOD16 / 2'LI KOLTUK (GOLD AYAKLI)", "group": "A", "man_min": 2.75, "rob_min": 1.583, "robots": [], "family": "SINGAPUR", "type": "2'LI", "size": "", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "NAOMI 160x200 BAZA+BAŞLIK+YATAK", "group": "A", "man_min": 4.0, "rob_min": 1.63, "robots": [], "family": "NAOMI", "type": "BAZA-TAM", "size": "160x200", "klass": "BAZA", "conf": "Orta"}, {"name": "SAO PAULO KANEPE (GOLD METALLI)", "group": "A", "man_min": 3.583, "rob_min": 1.917, "robots": [], "family": "SAO PAULO", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "TOKIO 3'LÜ KOLTUK (GOLD AYAKLI)", "group": "A", "man_min": 3.583, "rob_min": 1.917, "robots": [], "family": "TOKIO", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "ADRIATIC 180x200 BAZA+BAŞLIK+YATAK", "group": "B", "man_min": 4.5, "rob_min": 1.833, "robots": [4, 8], "family": "ADRIATIC", "type": "BAZA-TAM", "size": "180x200", "klass": "BAZA", "conf": "Yüksek"}, {"name": "ALVIS MOD15 / 3'LÜ KANEPE", "group": "B", "man_min": 3.583, "rob_min": 1.917, "robots": [1, 3], "family": "ALVIS", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "AYOLAS 180x200 BAZA+BAŞLIK+YATAK", "group": "B", "man_min": 4.5, "rob_min": 1.833, "robots": [5, 6], "family": "AYOLAS", "type": "BAZA-TAM", "size": "180x200", "klass": "BAZA", "conf": "Yüksek"}, {"name": "BERIVAN 180x200 BAZA+BAŞLIK+YATAK (TEK PARÇA TORBA YAY) POCO", "group": "B", "man_min": 4.5, "rob_min": 1.833, "robots": [4], "family": "BERIVAN", "type": "BAZA-TAM", "size": "180x200", "klass": "BAZA", "conf": "Yüksek"}, {"name": "CALIFORNIA 180x200 BAZA+BAŞLIK+YATAK", "group": "B", "man_min": 4.5, "rob_min": 1.833, "robots": [2, 10], "family": "CALIFORNIA", "type": "BAZA-TAM", "size": "180x200", "klass": "BAZA", "conf": "Yüksek"}, {"name": "INDIGO 180x200 BAZA+BAŞLIK+YATAK (TORBA YAYLI)", "group": "B", "man_min": 4.5, "rob_min": 1.833, "robots": [2, 6], "family": "INDIGO", "type": "BAZA-TAM", "size": "180x200", "klass": "BAZA", "conf": "Yüksek"}, {"name": "MARBELLA 3-2-1 KOLTUK TAKIMI", "group": "B", "man_min": 3.833, "rob_min": 2.167, "robots": [5, 10], "family": "MARBELLA", "type": "3-2-1", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "MIKADO 2'LI KOLTUK", "group": "B", "man_min": 2.34, "rob_min": 1.457, "robots": [8], "family": "MIKADO", "type": "2'LI", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, tip ölçek)"}, {"name": "MIKADO 3'LÜ KOLTUK", "group": "B", "man_min": 3.0, "rob_min": 1.867, "robots": [7], "family": "MIKADO", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, tip ölçek)"}, {"name": "ORLANDO MOD16 / 2'LI KANEPE", "group": "B", "man_min": 1.885, "rob_min": 0.973, "robots": [9], "family": "ORLANDO", "type": "2'LI", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, tip ölçek)"}, {"name": "SAIGON 180x200 BAZA+BAŞLIK+YATAK", "group": "B", "man_min": 4.5, "rob_min": 1.833, "robots": [6, 10], "family": "SAIGON", "type": "BAZA-TAM", "size": "180x200", "klass": "BAZA", "conf": "Yüksek"}, {"name": "SAN DIEGO TYP26 (MOD13-5-18-3) U KÖŞE TAKIMI (MAT SİYAH AYAKLI)", "group": "B", "man_min": 7.5, "rob_min": 4.167, "robots": [2], "family": "SAN DIEGO", "type": "KÖŞE", "size": "", "klass": "KÖŞE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "SAN MARINO 3-2 KOLTUK TAKIMI (DIŞ ARKA ORJINAL)", "group": "B", "man_min": 2.08, "rob_min": 1.17, "robots": [4], "family": "SAN MARINO", "type": "3-2", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, tip ölçek)"}, {"name": "SINGAPUR MOD7 / BERJER (GOLD AYAKLI)", "group": "B", "man_min": 3.917, "rob_min": 2.288, "robots": [], "family": "SINGAPUR", "type": "BERJER", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, tip ölçek)"}, {"name": "TOKIO BERJER (GOLD AYAKLI)", "group": "B", "man_min": 1.833, "rob_min": 1.167, "robots": [7], "family": "TOKIO", "type": "BERJER", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "ALANYA MOD17 / 1'LI KANEPE", "group": "C", "man_min": 1.75, "rob_min": 0.933, "robots": [6, 8], "family": "ALANYA", "type": "1'LI", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, 3'lü→tip ölçek)"}, {"name": "ALVIS MOD16 / 2'LI KANEPE", "group": "C", "man_min": 3.0, "rob_min": 1.75, "robots": [6], "family": "ALVIS", "type": "2'LI", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "ALVIS MOD17 / 1'LI KANEPE", "group": "C", "man_min": 1.833, "rob_min": 1.167, "robots": [4, 5], "family": "ALVIS", "type": "1'LI", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "BARCELONA L-KÖŞE TAKIMI", "group": "C", "man_min": 7.5, "rob_min": 4.167, "robots": [10], "family": "OTHER", "type": "KÖŞE", "size": "", "klass": "KÖŞE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "BOLERNO 1'LI KOLTUK", "group": "C", "man_min": 1.833, "rob_min": 1.167, "robots": [9], "family": "BOLERNO", "type": "1'LI", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "BOLERNO 2'LI KOLTUK", "group": "C", "man_min": 3.0, "rob_min": 1.75, "robots": [3], "family": "BOLERNO", "type": "2'LI", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "BOLERNO 3'LÜ KOLTUK (ORJINAL DIŞ ARKA)", "group": "C", "man_min": 3.583, "rob_min": 1.917, "robots": [5, 7], "family": "BOLERNO", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "COLOMBIA 120x200 BAZA+BAŞLIK+YATAK", "group": "C", "man_min": 3.0, "rob_min": 1.222, "robots": [6], "family": "COLOMBIA", "type": "BAZA-TAM", "size": "120x200", "klass": "BAZA", "conf": "Orta"}, {"name": "COLOMBIA 180x200 BAZA+BAŞLIK+YATAK", "group": "C", "man_min": 4.5, "rob_min": 1.833, "robots": [4], "family": "COLOMBIA", "type": "BAZA-TAM", "size": "180x200", "klass": "BAZA", "conf": "Yüksek"}, {"name": "ENZO KOMİDİN (NAKO)", "group": "C", "man_min": 0.0, "rob_min": 0.0, "robots": [], "family": "OTHER", "type": "AKSESUAR", "size": "", "klass": "AKSESUAR", "conf": "Yüksek"}, {"name": "ETNA 90x200 BAZA BETT KAST LINKS", "group": "C", "man_min": 4.0, "rob_min": 2.467, "robots": [6], "family": "ETNA", "type": "BAZA-ALT", "size": "90x200", "klass": "BAZA", "conf": "Orta"}, {"name": "ETNA 90x200 BAZA BETT KAST RECHTS", "group": "C", "man_min": 4.0, "rob_min": 2.467, "robots": [2, 5], "family": "ETNA", "type": "BAZA-ALT", "size": "90x200", "klass": "BAZA", "conf": "Orta"}, {"name": "KEMER 3'LÜ KANEPE (DIŞ ARKA ASTAR)", "group": "C", "man_min": 3.75, "rob_min": 1.867, "robots": [10], "family": "KEMER", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Yüksek (aynı aile + tip)"}, {"name": "KIRLENT (47x47 D.MALZ) (400 GR) %100 SÜNGER", "group": "C", "man_min": 0.0, "rob_min": 0.0, "robots": [], "family": "OTHER", "type": "AKSESUAR", "size": "47x47", "klass": "AKSESUAR", "conf": "Yüksek"}, {"name": "KIZAK 19 CM (BAZA BAŞLIK)", "group": "C", "man_min": 0.0, "rob_min": 0.0, "robots": [], "family": "OTHER", "type": "BAZA-TAM", "size": "", "klass": "BAZA", "conf": "Yüksek"}, {"name": "LISA 3-2-1 KANEPE TAKIMI", "group": "C", "man_min": 3.833, "rob_min": 2.167, "robots": [4, 8], "family": "LISA", "type": "3-2-1", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "METAL BAZA KULPU", "group": "C", "man_min": 0.0, "rob_min": 0.0, "robots": [], "family": "OTHER", "type": "BAZA-ALT", "size": "", "klass": "BAZA", "conf": "Yüksek"}, {"name": "MIKADO BERJER", "group": "C", "man_min": 1.5, "rob_min": 0.933, "robots": [3, 8], "family": "MIKADO", "type": "BERJER", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, tip ölçek)"}, {"name": "MYRA MOD15 / 3'LÜ KANEPE", "group": "C", "man_min": 2.417, "rob_min": 1.333, "robots": [3, 4], "family": "MYRA", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, tip ölçek)"}, {"name": "MYRA MOD16 / 2'LI KANEPE", "group": "C", "man_min": 1.885, "rob_min": 1.04, "robots": [7, 10], "family": "MYRA", "type": "2'LI", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, tip ölçek)"}, {"name": "MYRA MOD17 / 1'LI KANEPE", "group": "C", "man_min": 1.208, "rob_min": 0.667, "robots": [4, 6], "family": "MYRA", "type": "1'LI", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, tip ölçek)"}, {"name": "NAOMI 180'LIK BAŞLIK", "group": "C", "man_min": 1.0, "rob_min": 0.583, "robots": [9], "family": "NAOMI", "type": "BAŞLIK", "size": "", "klass": "BAZA", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "NAOMI 90x200 BAZA BETT KAST LINKS", "group": "C", "man_min": 2.25, "rob_min": 0.917, "robots": [1, 2], "family": "NAOMI", "type": "BAZA-ALT", "size": "90x200", "klass": "BAZA", "conf": "Orta"}, {"name": "NAOMI 90x200 BAZA BETT KAST RECHTS", "group": "C", "man_min": 2.25, "rob_min": 0.917, "robots": [3], "family": "NAOMI", "type": "BAZA-ALT", "size": "90x200", "klass": "BAZA", "conf": "Orta"}, {"name": "ORLANDO MOD17 / 1'LI KANEPE", "group": "C", "man_min": 1.208, "rob_min": 0.623, "robots": [7], "family": "ORLANDO", "type": "1'LI", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, tip ölçek)"}, {"name": "OSCAR 3'LÜ KANEPE", "group": "C", "man_min": 3.583, "rob_min": 1.917, "robots": [7], "family": "OTHER", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "P.SUNTA 08 mm 820x1905 mm T.YÜZ BOYALI (90x200 Kapak) LALE", "group": "C", "man_min": 0.0, "rob_min": 0.0, "robots": [], "family": "OTHER", "type": "AKSESUAR", "size": "820x1905", "klass": "AKSESUAR", "conf": "Yüksek"}, {"name": "P.SUNTA 08 mm 845x1940 mm T.YÜZ BOYALI (90x200 Alt Sunta) LALE", "group": "C", "man_min": 0.0, "rob_min": 0.0, "robots": [], "family": "OTHER", "type": "AKSESUAR", "size": "845x1940", "klass": "AKSESUAR", "conf": "Yüksek"}, {"name": "PANDORA 90x200 BAZA BETT KAST LINKS", "group": "C", "man_min": 2.25, "rob_min": 0.917, "robots": [8, 10], "family": "PANDORA", "type": "BAZA-ALT", "size": "90x200", "klass": "BAZA", "conf": "Orta"}, {"name": "PANDORA 90x200 BAZA BETT KAST RECHTS", "group": "C", "man_min": 2.25, "rob_min": 0.917, "robots": [1, 9], "family": "PANDORA", "type": "BAZA-ALT", "size": "90x200", "klass": "BAZA", "conf": "Orta"}, {"name": "RETRO 160x200 BAZA+BAŞLIK+YATAK", "group": "C", "man_min": 4.0, "rob_min": 1.63, "robots": [9], "family": "RETRO", "type": "BAZA-TAM", "size": "160x200", "klass": "BAZA", "conf": "Orta"}, {"name": "RIO-DUBAI MOD15 / 3'LÜ KANEPE", "group": "C", "man_min": 3.583, "rob_min": 1.917, "robots": [2, 6], "family": "RIO-DUBAI", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "RIO-DUBAI MOD16 / 2'LI KANEPE", "group": "C", "man_min": 3.0, "rob_min": 1.75, "robots": [3, 7], "family": "RIO-DUBAI", "type": "2'LI", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "RIO-DUBAI MOD17 / 1'LI KANEPE", "group": "C", "man_min": 1.833, "rob_min": 1.167, "robots": [1, 5], "family": "RIO-DUBAI", "type": "1'LI", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "RIVER MERCURY 1'LI KANEPE", "group": "C", "man_min": 1.833, "rob_min": 1.167, "robots": [9], "family": "RIVER MERCURY", "type": "1'LI", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "RIVER MERCURY 2'LI KANEPE", "group": "C", "man_min": 3.0, "rob_min": 1.75, "robots": [5], "family": "RIVER MERCURY", "type": "2'LI", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "RIVER MERCURY 3'LÜ KANEPE (ASTAR 3'LÜ DIŞ ARKA)", "group": "C", "man_min": 3.583, "rob_min": 1.917, "robots": [3], "family": "RIVER MERCURY", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "RIVER MERCURY 3-2-1 KANEPE TAKIMI (ASTAR 3'LÜ DIŞ ARKA)", "group": "C", "man_min": 3.833, "rob_min": 2.167, "robots": [3, 9], "family": "RIVER MERCURY", "type": "3-2-1", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "ROVIGO MOD16 / 2'LI KOLTUK", "group": "C", "man_min": 2.963, "rob_min": 1.457, "robots": [10], "family": "ROVIGO", "type": "2'LI", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, 3'lü→tip ölçek)"}, {"name": "ROVIGO MOD17 / 1'LI KOLTUK", "group": "C", "man_min": 1.9, "rob_min": 0.933, "robots": [1, 8], "family": "ROVIGO", "type": "1'LI", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, 3'lü→tip ölçek)"}, {"name": "ROVIGO TYP11 (MOD8-6) KÖŞE TAKIMI", "group": "C", "man_min": 7.5, "rob_min": 4.167, "robots": [6], "family": "ROVIGO", "type": "KÖŞE", "size": "", "klass": "KÖŞE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "SAN MARINO 3-1 KOLTUK TAKIMI (DIŞ ARKA ORJINAL)", "group": "C", "man_min": 1.733, "rob_min": 0.975, "robots": [1, 4], "family": "SAN MARINO", "type": "3-1", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, tip ölçek)"}, {"name": "SAN MARINO MOD15 / 3'LÜ KOLTUK (DIŞ ARKA ASTAR)", "group": "C", "man_min": 3.025, "rob_min": 1.75, "robots": [10], "family": "SAN MARINO", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Yüksek (aynı aile + tip)"}, {"name": "SAN MARINO MOD15 / 3'LÜ KOLTUK (DIŞ ARKA SIYAH TELA)", "group": "C", "man_min": 3.025, "rob_min": 1.75, "robots": [2], "family": "SAN MARINO", "type": "3'LÜ", "size": "", "klass": "KANEPE", "conf": "Yüksek (aynı aile + tip)"}, {"name": "SAN MARINO MOD17 / 1'LI KOLTUK", "group": "C", "man_min": 1.333, "rob_min": 0.75, "robots": [2, 9], "family": "SAN MARINO", "type": "1'LI", "size": "", "klass": "KANEPE", "conf": "Orta (aile var, tip ölçek)"}, {"name": "SİNGAPUR-SIENA METAL AYAK BÜKÜMLÜ GOLD RENGİ", "group": "C", "man_min": 0.0, "rob_min": 0.0, "robots": [], "family": "OTHER", "type": "AKSESUAR", "size": "", "klass": "AKSESUAR", "conf": "Yüksek"}, {"name": "TOKIO 2'LI KOLTUK (GOLD AYAKLI)", "group": "C", "man_min": 3.0, "rob_min": 1.75, "robots": [3], "family": "TOKIO", "type": "2'LI", "size": "", "klass": "KANEPE", "conf": "Düşük (aile eşleşmesi yok)"}, {"name": "TOKİO-PARMA 2'Lİ ALT KASA AHŞAP (895x1580x30) SİYAH BOYALI", "group": "C", "man_min": 0.0, "rob_min": 0.0, "robots": [], "family": "OTHER", "type": "2'LI", "size": "895x1580", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "TOKİO-PARMA 3'LÜ ALT KASA AHŞAP (895x2270x30) SİYAH BOYALI", "group": "C", "man_min": 0.0, "rob_min": 0.0, "robots": [], "family": "OTHER", "type": "3'LÜ", "size": "895x2270", "klass": "KANEPE", "conf": "Yüksek"}, {"name": "Ü.PLS.ARMADA STOP SİLİNDİR (DENGE TAKOZLU)", "group": "C", "man_min": 0.0, "rob_min": 0.0, "robots": [], "family": "OTHER", "type": "AKSESUAR", "size": "", "klass": "AKSESUAR", "conf": "Yüksek"}];
+const SETUP_RULE=[{t:(a,b)=>a.name===b.name,m:0},{t:(a,b)=>a.family&&a.family===b.family&&a.type===b.type,m:1},{t:(a,b)=>a.family&&a.family===b.family,m:3},{t:(a,b)=>a.size&&a.size===b.size,m:4},{t:(a,b)=>a.klass&&a.klass===b.klass,m:5}];
+const DEFAULT_SETUP=10,DAILY=540,N_MANUAL=5,N_ROBOT=10,SAFETY_A=0.20,SAFETY_BC=0.0;
+const COLORS=['#00d4ff','#00e676','#ff9800','#7c4dff','#ffd600','#ff3d8b','#00bcd4','#8bc34a','#ff7043','#26c6da','#ab47bc','#9ccc65','#ec407a','#42a5f5'];
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const byName={};PRODUCTS.forEach(p=>byName[p.name]=p);
+const famC={};let ci=0;const colorOf=p=>{const k=p&&(p.family||p.name)||'?';if(!(k in famC))famC[k]=COLORS[ci++%COLORS.length];return famC[k];};
+const fmtH=m=>(m/60).toFixed(1)+'h',fmtN=n=>Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'\u2009');
+const utilCol=u=>u>1?'var(--red)':u>0.85?'var(--orange)':'var(--green)';
+function wd(mi,yr){yr=yr||YEAR;let n=new Date(yr,mi+1,0).getDate(),c=0;for(let d=1;d<=n;d++){let w=new Date(yr,mi,d).getDay();if(w>=1&&w<=5)c++;}return c;}
+let SOURCE='live',ENTRY='month',curGroup='ALL',orders={},PLAN=[],curMonth=new Date().getMonth(),YEAR=2026,FILENAME='';
+function thr(){return +document.getElementById('thr').value;}
+function umax(){return +document.getElementById('umax').value;}
+function capRobot(mi){return wd(mi)*DAILY*umax();}
+function capManual(mi){return wd(mi)*DAILY*N_MANUAL*umax();}
+function route(p,q){const T=(p.group==='A')?thr():20;return (p.robots&&p.robots.length&&q>=T)?'robot':'manual';}
+function init(){
+  const ms=document.getElementById('month');MON.forEach((m,i)=>{const o=document.createElement('option');o.value=i;o.textContent=m;ms.appendChild(o);});ms.value=curMonth;
+  const ys=document.getElementById('year');[2024,2025,2026,2027,2028].forEach(y=>{const o=document.createElement('option');o.value=y;o.textContent=y;ys.appendChild(o);});ys.value=YEAR;
+  document.getElementById('impModel').addEventListener('change',e=>e.target.files[0]&&loadModel(e.target.files[0]));
+  document.getElementById('impOrders').addEventListener('change',e=>e.target.files[0]&&loadOrdersXlsx(e.target.files[0]));
+  document.getElementById('cmpA')&&0; loadExample();renderOrderList();renderCompare();
+}
+function onYear(){YEAR=+document.getElementById('year').value;if(SOURCE==='live')buildLivePlan();updateStatus();renderAll();}
+function monthLabel(mi){return MON[mi]+' '+YEAR;}
+function buildLivePlan(){
+  PLAN=[];const names=Object.keys(orders).filter(n=>orders[n]>0&&byName[n]);if(!names.length){SOURCE='live';return;}
+  const totWd=Array.from({length:12},(_,i)=>wd(i));const sumWd=totWd.reduce((a,b)=>a+b,0);const md={};
+  names.forEach(n=>{if(ENTRY==='month'){const a=Array(12).fill(0);a[curMonth]=orders[n];md[n]=a;}else md[n]=totWd.map(w=>Math.round(orders[n]*w/sumWd));});
+  names.forEach(n=>{const p=byName[n];const dem=md[n];const avg=dem.reduce((a,b)=>a+b,0)/12;
+    const safety=ENTRY==='month'?0:Math.round((p.group==='A'?SAFETY_A:SAFETY_BC)*avg);let prevInv=0;
+    for(let m=0;m<12;m++){if(ENTRY==='month'&&m!==curMonth)continue;
+      const d=dem[m];const target=d>0?safety:0;let prod=Math.max(0,d+target-prevInv);const endInv=Math.max(0,prevInv+prod-d);prevInv=endInv;
+      const row={name:n,group:p.group,month:m,demand:d,production:prod,manual:0,rob:{},endInv,minInv:target,maxInv:Math.round(target*1.5),unmet:0,mtime:p.man_min,rtime:p.rob_min};
+      if(prod>0){if(route(p,prod)==='robot')row._rr=true;else row.manual=prod;}PLAN.push(row);}});
+  for(let m=0;m<12;m++){const load={};for(let r=1;r<=10;r++)load[r]=0;
+    PLAN.filter(r=>r.month===m&&r._rr).sort((a,b)=>byName[b.name].rob_min*b.production-byName[a.name].rob_min*a.production)
+      .forEach(row=>{const p=byName[row.name];const e=p.robots.filter(r=>load[r]!==undefined);if(!e.length){row.manual=row.production;return;}e.sort((x,y)=>load[x]-load[y]);const r=e[0];row.rob[r]=row.production;load[r]+=p.rob_min*row.production;});}
+  SOURCE='live';
+}
+function parseRobots(s){return String(s||'').split(/[,\s]+/).map(Number).filter(Boolean);}
+function parsePlanSheet(wb){
+  const pp=XLSX.utils.sheet_to_json(wb.Sheets['Production Plan']);if(!pp.length)return null;
+  const out=[];let yr=null;
+  pp.forEach(r=>{const period=String(r.Period||'');const parts=period.split('-');const m=parseInt(parts[1])-1;if(isNaN(m))return;if(!yr&&parts[0])yr=parseInt(parts[0]);
+    const rob={};for(let i=1;i<=10;i++){const v=+r['Robot_'+i+'_Production']||0;if(v>0)rob[i]=v;}
+    out.push({name:String(r.Product||r.Product_Key||'').trim().replace(/\s+/g,' '),group:r.Product_Class||'?',month:m,
+      demand:+r.Forecast_Demand||0,production:+r.Total_Production||0,manual:+r.Manual_Production||0,rob,
+      endInv:+r.Ending_Inventory||0,minInv:+r.Min_Required_Inventory||0,maxInv:+r.Max_Allowed_Inventory||0,unmet:+r.Unmet_Demand||0,
+      mtime:+r.Manual_Time_Min||0,rtime:+r.Robot_Time_Min||0});});
+  return{rows:out,year:yr||2026};
+}
+function loadModel(file){const rd=new FileReader();rd.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'binary'});const r=parsePlanSheet(wb);
+  if(!r){alert("'Production Plan' sheet not found.");return;}PLAN=r.rows;YEAR=r.year;document.getElementById('year').value=YEAR;FILENAME=file.name;SOURCE='model';closeDrawer();updateStatus();renderAll();
+  alert(PLAN.length+' rows loaded from '+file.name+' ('+new Set(PLAN.map(x=>x.name)).size+' products, year '+YEAR+').');
+}catch(err){alert('Could not read: '+err.message);}};rd.readAsBinaryString(file);}
+function setupMin(a,b){if(!a)return 0;for(const r of SETUP_RULE)if(r.t(a,b))return r.m;return DEFAULT_SETUP;}
+function nn(items){if(items.length<=1)return items.slice();const L=items.slice(),s=[L.shift()];while(L.length){let bi=0,bm=1e9;const last=s[s.length-1].p;for(let i=0;i<L.length;i++){const mm=setupMin(last,L[i].p);if(mm<bm){bm=mm;bi=i;}}s.push(L.splice(bi,1)[0]);}return s;}
+function utFor(row,type){const p=byName[row.name];if(type==='manual')return p?p.man_min:(row.mtime||0);return p?p.rob_min:(row.rtime||0);}
+function buildMonthMachines(mi,plan){plan=plan||PLAN;const rows=plan.filter(r=>r.month===mi);const machines=[];
+  const manItems=rows.filter(r=>r.manual>0).map(r=>({p:byName[r.name]||{name:r.name,group:r.group,family:''},qty:r.manual,ut:utFor(r,'manual')}));
+  machines.push(buildMach('Manual Pool','manual','🔧',N_MANUAL,nn(manItems),capManual(mi)));
+  for(let rb=1;rb<=10;rb++){const it=rows.filter(r=>r.rob&&r.rob[rb]>0).map(r=>({p:byName[r.name]||{name:r.name,group:r.group,family:''},qty:r.rob[rb],ut:utFor(r,'robot')}));
+    if(it.length)machines.push(buildMach('Robot '+rb,'robot','🤖',1,nn(it),capRobot(mi),rb));}
+  return machines;}
+function buildMach(name,type,icon,nRes,seq,cap,rid){let t=0,run=0,setup=0,prev=null;const jobs=[];
+  seq.forEach(j=>{const su=setupMin(prev,j.p);const rt=j.qty*(j.ut||0);jobs.push({p:j.p,qty:j.qty,setup:su,run:rt,setupStart:t,start:t+su});t+=su+rt;run+=rt;setup+=su;prev=j.p;});
+  return{name,type,icon,nRes,rid,jobs,run,setup,total:t,cap,util:cap?t/cap:0};}
+function recompute(){if(SOURCE==='live')buildLivePlan();updateStatus();renderAll();}
+function applyOrders(){SOURCE='live';FILENAME='';buildLivePlan();closeDrawer();updateStatus();renderAll();go('schedule');}
+function onMonth(){curMonth=+document.getElementById('month').value;if(SOURCE==='live'&&ENTRY==='month')buildLivePlan();renderAll();}
+function activeMonths(){if(SOURCE==='live'&&ENTRY==='month')return[curMonth];return[...Array(12).keys()].filter(m=>PLAN.some(r=>r.month===m));}
+function updateStatus(){const sp=document.getElementById('srcPill');
+  if(SOURCE==='model'){sp.className='srcpill src-model';sp.textContent='MODEL · '+(FILENAME||'v?')+' · '+YEAR;}
+  else{sp.className='srcpill src-live';sp.textContent='LIVE · '+(ENTRY==='month'?monthLabel(curMonth):'YEAR '+YEAR);}
+  let over=0,maxU=0;activeMonths().forEach(m=>buildMonthMachines(m).forEach(mc=>{if(mc.jobs.length){maxU=Math.max(maxU,mc.util);if(mc.util>1)over++;}}));
+  const sc=document.getElementById('statusChip');
+  if(!PLAN.length){sc.className='chip chip-dim';sc.textContent='NO DATA';}
+  else if(over){sc.className='chip chip-red';sc.textContent='⚠ '+over+' OVER CAP';}
+  else{sc.className='chip chip-green';sc.textContent='✓ FEASIBLE · PEAK '+(maxU*100).toFixed(0)+'%';}
+}
+function renderAll(){renderOverview();renderAnnual();renderSchedule();renderPlan();renderProducts();renderResources();renderInventory();renderAlerts();renderEligibility();}
+function agg(plan){plan=plan||PLAN;let dem=0,prod=0,man=0,rob=0,inv=0,unmet=0;plan.forEach(r=>{dem+=r.demand;prod+=r.production;man+=r.manual;rob+=Object.values(r.rob).reduce((a,b)=>a+b,0);inv+=r.endInv;unmet+=r.unmet;});return{dem,prod,man,rob,inv,unmet,fill:dem?100*(dem-unmet)/dem:100};}
+function monthSeries(fn,plan){plan=plan||PLAN;return[...Array(12).keys()].map(m=>{let v=0;plan.filter(r=>r.month===m).forEach(r=>v+=fn(r));return v;});}
+function kpi(v,l,s,c){return `<div class="kpi" style="--accent:${c}"><div class="v" style="color:${c}">${v}</div><div class="l">${l}</div><div class="s">${s||''}</div></div>`;}
+function emptyMsg(){return `<div class="empty">▸ Use "⊕ Orders / Data" (top right) to enter orders or load a model output (.xlsx).</div>`;}
+function renderOverview(){const el=document.getElementById('page-overview');if(!PLAN.length){el.innerHTML=emptyMsg();return;}
+  const a=agg();const scope=SOURCE==='live'&&ENTRY==='month'?monthLabel(curMonth)+' (single month)':'Full year '+YEAR;
+  el.innerHTML=`<div class="sec-t">01 · Objective Metrics <span class="n">— ${scope} · meet demand with minimal excess</span></div><div class="kpis">
+    ${kpi(a.fill.toFixed(1)+'%','Fill Rate',a.unmet?fmtN(a.unmet)+' unmet':'demand fully met',a.fill>=99.9?'var(--green)':'var(--orange)')}
+    ${kpi(fmtN(a.prod-a.dem),'Overproduction',(a.dem?((a.prod-a.dem)/a.dem*100).toFixed(1):'0')+'% above demand',(a.prod-a.dem)<=a.dem*0.05?'var(--green)':'var(--orange)')}
+    ${kpi(fmtN(a.inv),'Ending Inventory','buffer held','var(--orange)')}
+    ${kpi(fmtN(a.dem),'Total Demand',(new Set(PLAN.map(r=>r.name)).size)+' products','var(--cyan)')}
+    ${kpi(fmtN(a.prod),'Total Production','planned','var(--cyan)')}
+    ${kpi((a.prod?100*a.rob/(a.man+a.rob):0).toFixed(0)+' / '+(a.prod?100*a.man/(a.man+a.rob):0).toFixed(0)+'%','Robot / Manual','unit share','var(--green)')}</div>
+    <div class="sec-t">02 · Demand vs Production</div><div class="card">${barsForecastProd()}</div>
+    <div class="grid2" style="margin-top:16px"><div class="card"><h3>Manual / Robot Split</h3><div class="sub">stacked by month</div>${stackedMR()}</div>
+    <div class="card"><h3>Routing</h3><div class="sub">share of produced units</div>${donutMR(a)}</div></div>`;}
+function barsForecastProd(){const dem=monthSeries(r=>r.demand),prod=monthSeries(r=>r.production);const mx=Math.max(1,...dem,...prod);
+  return `<div style="display:flex;align-items:flex-end;gap:8px;height:200px;padding-top:10px">${dem.map((d,i)=>{const ph=prod[i]/mx*100,dh=d/mx*100;
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end"><div style="display:flex;gap:2px;align-items:flex-end;width:100%;height:100%;justify-content:center">
+      <div title="Demand ${fmtN(d)}" style="width:42%;height:${dh}%;background:var(--cyan2);border-radius:2px 2px 0 0"></div><div title="Production ${fmtN(prod[i])}" style="width:42%;height:${ph}%;background:var(--green);border-radius:2px 2px 0 0"></div></div>
+      <div style="font-family:var(--mono);font-size:.52rem;color:var(--dim2)">${MON[i]}</div></div>`;}).join('')}</div>
+    <div class="legend"><span><span class="lg-sw" style="background:var(--cyan2)"></span>Demand</span><span><span class="lg-sw" style="background:var(--green)"></span>Production</span></div>`;}
+function stackedMR(){const man=monthSeries(r=>r.manual),rob=monthSeries(r=>Object.values(r.rob).reduce((a,b)=>a+b,0));const mx=Math.max(1,...man.map((m,i)=>m+rob[i]));
+  return `<div style="display:flex;align-items:flex-end;gap:7px;height:170px;margin-top:6px">${man.map((m,i)=>{const mh=m/mx*100,rh=rob[i]/mx*100;
+    return `<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:3px"><div style="width:100%;height:${rh}%;background:var(--purple);border-radius:2px 2px 0 0" title="Robot ${fmtN(rob[i])}"></div><div style="width:100%;height:${mh}%;background:var(--cyan2)" title="Manual ${fmtN(m)}"></div></div>`;}).join('')}</div>
+    <div class="legend"><span><span class="lg-sw" style="background:var(--cyan2)"></span>Manual</span><span><span class="lg-sw" style="background:var(--purple)"></span>Robot</span></div>`;}
+function donutMR(a){const tot=a.man+a.rob||1;const robPct=a.rob/tot*100;const c=2*Math.PI*54;
+  return `<div style="display:flex;justify-content:center;padding:10px"><svg width="180" height="180" viewBox="0 0 140 140"><circle cx="70" cy="70" r="54" fill="none" stroke="var(--panel3)" stroke-width="18"/>
+    <circle cx="70" cy="70" r="54" fill="none" stroke="var(--green)" stroke-width="18" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-robPct/100)}" transform="rotate(-90 70 70)" stroke-linecap="round"/>
+    <text x="70" y="66" text-anchor="middle" fill="var(--text)" font-family="JetBrains Mono" font-size="20" font-weight="700">${robPct.toFixed(0)}%</text><text x="70" y="84" text-anchor="middle" fill="var(--dim2)" font-family="JetBrains Mono" font-size="8">ROBOT</text></svg></div>
+    <div class="legend" style="justify-content:center"><span><span class="lg-sw" style="background:var(--green)"></span>Robot ${fmtN(a.rob)}</span><span><span class="lg-sw" style="background:var(--cyan2)"></span>Manual ${fmtN(a.man)}</span></div>`;}
+function lineChart(series,unit){ // series: [{vals,color,label}]
+  const all=[].concat(...series.map(s=>s.vals));const mx=Math.max(1,...all),W=100,H=44;
+  const poly=s=>s.vals.map((v,i)=>`${(i/(s.vals.length-1))*W},${H-(v/mx)*H}`).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H+4}" preserveAspectRatio="none" style="width:100%;height:200px">
+    ${series.map(s=>`<polyline points="${poly(s)}" fill="none" stroke="${s.color}" stroke-width="0.8"/>`+s.vals.map((v,i)=>`<circle cx="${(i/(s.vals.length-1))*W}" cy="${H-(v/mx)*H}" r="0.9" fill="${s.color}"/>`).join('')).join('')}</svg>
+    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.52rem;color:var(--dim2);margin-top:4px">${MON.map(m=>`<span>${m[0]}</span>`).join('')}</div>
+    <div class="legend">${series.map(s=>`<span><span class="lg-sw" style="background:${s.color}"></span>${s.label}</span>`).join('')}<span style="color:var(--dim)">max ${Math.round(mx)}${unit||''}</span></div>`;}
+function renderAnnual(){const el=document.getElementById('page-annual');if(!PLAN.length){el.innerHTML=emptyMsg();return;}
+  if(SOURCE==='live'&&ENTRY==='month'){el.innerHTML=`<div class="empty">Annual review needs a full-year dataset.<br>Use <b>Yearly Entry</b> or load a model output.</div>`;return;}
+  const a=agg();const peak=[...Array(12).keys()].map(m=>{const mm=buildMonthMachines(m).filter(x=>x.jobs.length);return mm.length?Math.max(...mm.map(x=>x.util)):0;});
+  const totSetup=[...Array(12).keys()].reduce((s,m)=>s+buildMonthMachines(m).reduce((a,x)=>a+x.setup,0),0);
+  el.innerHTML=`<div class="sec-t">Year-End Review <span class="n">— ${YEAR}</span></div><div class="kpis">
+    ${kpi(fmtN(a.dem),'Annual Demand','','var(--cyan)')}${kpi(fmtN(a.prod),'Annual Production','','var(--cyan)')}
+    ${kpi(a.fill.toFixed(1)+'%','Fill Rate','','var(--green)')}${kpi(fmtH(totSetup),'Total Setup','lost to changeovers','var(--orange)')}
+    ${kpi((Math.max(...peak)*100).toFixed(0)+'%','Peak Utilization','busiest month/machine',utilCol(Math.max(...peak)))}${kpi(fmtN(a.inv/12),'Avg Monthly Stock','buffer','var(--orange)')}</div>
+    <div class="sec-t">Monthly Peak Utilization</div><div class="card">${lineChart([{vals:peak.map(p=>p*100),color:'var(--cyan)',label:'Peak util %'}],'%')}</div>
+    <div class="sec-t">Inventory Buffer (ending)</div><div class="card">${lineChart([{vals:monthSeries(r=>r.endInv),color:'var(--orange)',label:'Ending inventory'}],'')}</div>`;}
+function renderSchedule(){const el=document.getElementById('page-schedule');if(!PLAN.length){el.innerHTML=emptyMsg();return;}
+  const machines=buildMonthMachines(curMonth).filter(m=>m.jobs.length);
+  if(!machines.length){el.innerHTML=`<div class="empty">No production for ${monthLabel(curMonth)}.</div>`;return;}
+  const totRun=machines.reduce((a,m)=>a+m.run,0),totSet=machines.reduce((a,m)=>a+m.setup,0),peak=Math.max(...machines.map(m=>m.util));
+  const units=PLAN.filter(r=>r.month===curMonth).reduce((a,r)=>a+r.production,0);
+  el.innerHTML=`<div class="sec-t">${monthLabel(curMonth)} Schedule <span class="n">— ${wd(curMonth)} working days · cap ${umax()*100}%</span></div><div class="kpis">
+    ${kpi(fmtN(units),'Units Produced','','var(--cyan)')}${kpi(fmtH(totRun+totSet),'Total Welding','','var(--cyan)')}
+    ${kpi(machines.length,'Active Machines',machines.filter(m=>m.type==='robot').length+' robots','var(--green)')}
+    ${kpi((peak*100).toFixed(0)+'%','Peak Utilization','',utilCol(peak))}${kpi(fmtH(totSet),'Setup',(100*totSet/(totRun+totSet)||0).toFixed(1)+'% share','var(--orange)')}</div>
+    <div class="sec-t">Machine Sequences</div><div class="mach-grid">${machines.map(machCard).join('')}</div>
+    <div class="sec-t">Timeline (Gantt) <span class="n" style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-ghost" style="padding:5px 11px" onclick="exportGanttPNG()">⬇ PNG</button><button class="btn btn-ghost" style="padding:5px 11px" onclick="exportScheduleXLSX()">⬇ Excel</button></span></div>${ganttHtml(machines)}`;}
+function machCard(m){const u=(m.util*100).toFixed(0);
+  return `<div class="mcard ${m.util>1?'over':''}"><div class="mcard-hd"><span class="mi">${m.icon}</span><span class="mt">${m.name}${m.nRes>1?` <small>(${m.nRes} welders)</small>`:''}</span>
+    <div class="util-wrap"><div class="util-bar"><div class="util-fill" style="width:${Math.min(100,u)}%;background:${utilCol(m.util)}"></div></div><div class="util-pct" style="color:${utilCol(m.util)}">${u}% · ${fmtH(m.total)}/${fmtH(m.cap)}</div></div></div>
+    <div>${m.jobs.map((j,i)=>`<div class="seqrow ${i===0?'first':''}"><div class="seqno">${i+1}</div><div class="seqnm">${j.p.name}<div class="meta">${j.p.group||''} · ${j.p.family||'—'}${j.setup>0?` <span class="setup-chip">+${j.setup}m setup</span>`:''}</div></div><div class="seqt"><b>${fmtN(j.qty)}</b> pc<br>${fmtH(j.run)}</div></div>`).join('')}</div></div>`;}
+function ganttHtml(machines){
+  // each track is scaled to ITS OWN capacity so robots aren't dwarfed by the manual pool
+  return `<div class="gantt" id="ganttBox">${machines.map(m=>{const cap=m.cap||1;const util=m.total/cap*100;
+    return `<div class="grow"><div class="glabel">${m.name}</div><div class="gtrack">
+    ${m.jobs.map(j=>{const l=j.setupStart/cap*100,sw=j.setup/cap*100,rw=j.run/cap*100;return (j.setup>0?`<div class="gsetup" style="left:${Math.min(100,l)}%;width:${sw}%"></div>`:'')+`<div class="gblk" style="left:${Math.min(100,j.start/cap*100)}%;width:${rw}%;background:${colorOf(byName[j.p.name]||j.p)}" title="${j.p.name} · ${fmtN(j.qty)} pc · ${fmtH(j.run)}">${rw>7?(j.p.family||j.p.name.split(' ')[0]):''}</div>`;}).join('')}
+    <div class="gcap" style="left:100%" title="80% capacity cap"></div></div>
+    <div class="gutil" style="color:${utilCol(m.util)}">${util.toFixed(0)}%</div></div>`;}).join('')}
+    <div class="gaxis2"><span>0%</span><span>50%</span><span>cap 100%</span></div>
+    <div class="legend"><span><span class="lg-sw" style="background:var(--cyan)"></span>production</span><span><span class="lg-sw" style="background:var(--orange)"></span>setup</span><span><span class="lg-sw" style="background:var(--red);width:3px"></span>${umax()*100}% capacity cap</span><span style="color:var(--dim)">each bar = % of that machine's usable capacity</span></div></div>`;}
+function exportGanttPNG(){const el=document.getElementById('ganttBox');if(!el){alert('No schedule to export.');return;}
+  if(typeof html2canvas==='undefined'){alert('PNG library not loaded (check connection).');return;}
+  html2canvas(el,{backgroundColor:getComputedStyle(document.body).backgroundColor||'#eef1f7',scale:2}).then(c=>{
+    const a=document.createElement('a');a.download='welding_schedule_'+MON[curMonth]+YEAR+'.png';a.href=c.toDataURL('image/png');a.click();});}
+function exportScheduleXLSX(){const machines=buildMonthMachines(curMonth).filter(m=>m.jobs.length);
+  if(!machines.length){alert('No production for this month.');return;}
+  const rows=[];machines.forEach(m=>{m.jobs.forEach((j,i)=>{rows.push({
+    Machine:m.name,Type:m.type==='manual'?'Manual':'Robot',Sequence:i+1,Product:j.p.name,Group:j.p.group||'',
+    Quantity:Math.round(j.qty),Unit_Time_Min:+((m.type==='manual'?(byName[j.p.name]?byName[j.p.name].man_min:0):(byName[j.p.name]?byName[j.p.name].rob_min:0))).toFixed(2),
+    Run_Min:Math.round(j.run),Setup_Min:Math.round(j.setup),Capacity_Min:Math.round(m.cap),Utilization_pct:+(m.util*100).toFixed(1)});});});
+  const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[{wch:13},{wch:8},{wch:9},{wch:34},{wch:6},{wch:9},{wch:12},{wch:9},{wch:10},{wch:12},{wch:14}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Schedule');
+  XLSX.writeFile(wb,'welding_schedule_'+MON[curMonth]+YEAR+'.xlsx');}
+let planQ='';
+function renderPlan(){const el=document.getElementById('page-plan');if(!PLAN.length){el.innerHTML=emptyMsg();return;}
+  el.innerHTML=`<div class="sec-t">Plan Detail <span class="n">— product × month</span></div><div class="searchbar"><input placeholder="🔍 Search product..." value="${planQ}" oninput="planQ=this.value;renderPlanTable()"></div><div class="tbl-wrap" id="planTbl"></div>`;renderPlanTable();}
+function renderPlanTable(){const rows=PLAN.filter(r=>r.name.toLowerCase().includes(planQ.toLowerCase())).filter(r=>SOURCE!=='live'||ENTRY!=='month'||r.month===curMonth).sort((a,b)=>a.name.localeCompare(b.name)||a.month-b.month).slice(0,400);
+  document.getElementById('planTbl').innerHTML=`<table><thead><tr><th>Product</th><th>Gr</th><th>Month</th><th>Demand</th><th>Prod</th><th>Manual</th><th>Robot</th><th>Stock</th><th>Unmet</th></tr></thead><tbody>
+   ${rows.map(r=>{const rob=Object.keys(r.rob).map(k=>'R'+k).join(',')||'—';return `<tr><td>${r.name}</td><td><span class="gbadge g${r.group}">${r.group}</span></td><td>${MON[r.month]}</td><td>${fmtN(r.demand)}</td><td>${fmtN(r.production)}</td><td>${fmtN(r.manual)}</td><td style="color:var(--green)">${rob}</td><td>${fmtN(r.endInv)}</td><td style="color:${r.unmet?'var(--red)':'var(--dim)'}">${fmtN(r.unmet)}</td></tr>`;}).join('')}</tbody></table>`;}
+let prodQ='';
+function renderProducts(){const el=document.getElementById('page-products');if(!PLAN.length){el.innerHTML=emptyMsg();return;}
+  el.innerHTML=`<div class="sec-t">Products <span class="n">— annual totals</span></div><div class="searchbar"><input placeholder="🔍 Search product..." value="${prodQ}" oninput="prodQ=this.value;renderProdTable()"></div><div class="tbl-wrap" id="prodTbl"></div>`;renderProdTable();}
+function renderProdTable(){const map={};PLAN.forEach(r=>{const k=r.name;if(!map[k])map[k]={name:k,group:r.group,dem:0,prod:0,man:0,rob:0,inv:0};const o=map[k];o.dem+=r.demand;o.prod+=r.production;o.man+=r.manual;o.rob+=Object.values(r.rob).reduce((a,b)=>a+b,0);o.inv+=r.endInv;});
+  const rows=Object.values(map).filter(p=>p.name.toLowerCase().includes(prodQ.toLowerCase())).sort((a,b)=>b.dem-a.dem);
+  document.getElementById('prodTbl').innerHTML=`<table><thead><tr><th>Product</th><th>Gr</th><th>Demand</th><th>Prod</th><th>Manual</th><th>Robot</th><th>Robot %</th><th>Stock</th></tr></thead><tbody>
+   ${rows.map(p=>`<tr><td>${p.name}</td><td><span class="gbadge g${p.group}">${p.group}</span></td><td>${fmtN(p.dem)}</td><td>${fmtN(p.prod)}</td><td>${fmtN(p.man)}</td><td style="color:var(--green)">${fmtN(p.rob)}</td><td>${(p.prod?100*p.rob/(p.man+p.rob):0).toFixed(0)}%</td><td>${fmtN(p.inv)}</td></tr>`).join('')}</tbody></table>`;}
+function renderResources(){const el=document.getElementById('page-resources');if(!PLAN.length){el.innerHTML=emptyMsg();return;}
+  const res=['Manual'];for(let r=1;r<=10;r++)res.push('Robot '+r);const U={};res.forEach(rr=>U[rr]=Array(12).fill(0));
+  for(let m=0;m<12;m++)buildMonthMachines(m).forEach(x=>{const key=x.type==='manual'?'Manual':x.name;if(U[key])U[key][m]=x.cap?x.util*100:0;});
+  const heatCol=v=>{if(v<=0)return 'var(--panel2)';const t=Math.min(1,v/100);if(v>100)return 'rgba(255,61,61,.85)';if(v>80)return `rgba(255,152,0,${.35+t*.5})`;return `rgba(0,230,118,${.18+t*.6})`;};
+  el.innerHTML=`<div class="sec-t">Machine Utilization Heatmap <span class="n">— resource × month (%)</span></div>
+   <div class="card" style="overflow:auto"><table class="heat"><thead><tr><th></th>${MON.map(m=>`<th>${m}</th>`).join('')}</tr></thead><tbody>
+   ${res.map(rr=>`<tr><td>${rr}</td>${U[rr].map(v=>`<td style="background:${heatCol(v)};color:${v>0?'#08080a':'var(--dim)'}">${v>0?v.toFixed(0):'·'}</td>`).join('')}</tr>`).join('')}</tbody></table>
+   <div class="legend"><span><span class="lg-sw" style="background:rgba(0,230,118,.6)"></span>low</span><span><span class="lg-sw" style="background:rgba(255,152,0,.7)"></span>80%+</span><span><span class="lg-sw" style="background:rgba(255,61,61,.85)"></span>over cap</span></div></div>
+   <div class="sec-t">Average Robot Utilization</div><div class="card">${res.slice(1).map(rr=>{const a=U[rr].filter(v=>v>0);const av=a.length?a.reduce((x,y)=>x+y,0)/a.length:0;return `<div class="bar-row"><div class="bar-lab">${rr.replace('Robot ','R')}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,av)}%;background:${utilCol(av/100)}"></div></div><div class="bar-val">${av.toFixed(1)}%</div></div>`;}).join('')}</div>`;}
+let invQ='';
+function renderInventory(){const el=document.getElementById('page-inventory');if(!PLAN.length){el.innerHTML=emptyMsg();return;}
+  const mr=PLAN.filter(r=>r.month===curMonth);const stockNow=mr.reduce((a,r)=>a+r.endInv,0);const demNow=mr.reduce((a,r)=>a+r.demand,0);
+  const cover=demNow?(stockNow/(demNow/wd(curMonth))).toFixed(1):'0';const aStock=mr.filter(r=>r.group==='A').reduce((a,r)=>a+r.endInv,0);
+  el.innerHTML=`<div class="sec-t">Inventory <span class="n">— ${monthLabel(curMonth)} · change month from the top bar</span></div>
+   <div class="kpis">
+     ${kpi(fmtN(stockNow),'Ending Stock','this month','var(--orange)')}
+     ${kpi(cover+' d','Days of Coverage','stock ÷ daily demand','var(--cyan)')}
+     ${kpi(fmtN(aStock),'Group A Stock','B/C = 0 (make-to-order)','var(--cyan)')}
+   </div>
+   <div class="sec-t">Monthly Stock Trend <span class="n">— full year</span></div>
+   <div class="card">${lineChart([{vals:monthSeries(r=>r.endInv),color:'var(--orange)',label:'Ending inventory'}],'')}</div>
+   <div class="sec-t">${monthLabel(curMonth)} · stock vs limits</div>
+   <div class="searchbar"><input placeholder="🔍 Search product..." value="${invQ}" oninput="invQ=this.value;renderInvTable()"></div><div class="tbl-wrap" id="invTbl"></div>`;renderInvTable();}
+function renderInvTable(){const rows=PLAN.filter(r=>r.month===curMonth&&r.name.toLowerCase().includes(invQ.toLowerCase())&&(r.endInv>0||r.minInv>0)).sort((a,b)=>b.endInv-a.endInv).slice(0,300);
+  document.getElementById('invTbl').innerHTML=`<table><thead><tr><th>Product</th><th>Gr</th><th>Min</th><th>Stock</th><th>Max</th><th>Status</th></tr></thead><tbody>
+   ${rows.map(r=>{const st=r.endInv<r.minInv?'<span style="color:var(--red)">below</span>':r.maxInv&&r.endInv>r.maxInv?'<span style="color:var(--orange)">above</span>':'<span style="color:var(--green)">in band</span>';return `<tr><td>${r.name}</td><td><span class="gbadge g${r.group}">${r.group}</span></td><td>${fmtN(r.minInv)}</td><td>${fmtN(r.endInv)}</td><td>${fmtN(r.maxInv)}</td><td>${st}</td></tr>`;}).join('')}</tbody></table>`;}
+function renderAlerts(){const el=document.getElementById('page-alerts');if(!PLAN.length){el.innerHTML=emptyMsg();return;}
+  const al=[];activeMonths().forEach(m=>buildMonthMachines(m).forEach(x=>{if(x.jobs.length&&x.util>1)al.push(['al-red','⛔',`<b>${monthLabel(m)} · ${x.name}</b> over capacity (${(x.util*100).toFixed(0)}%). Needs overtime / lot-splitting / re-routing.`]);}));
+  const unmet=PLAN.filter(r=>r.unmet>0);if(unmet.length)al.push(['al-red','⛔',`${unmet.length} product-months unmet (total ${fmtN(unmet.reduce((a,r)=>a+r.unmet,0))} units).`]);
+  activeMonths().forEach(m=>{const man=buildMonthMachines(m).find(x=>x.type==='manual');if(man&&man.util>0.85&&man.util<=1)al.push(['al-orange','⚠',`${monthLabel(m)}: manual pool at ${(man.util*100).toFixed(0)}% — heavy. Consider routing some A products to robots (lower the threshold).`]);});
+  if(!al.length)al.push(['al-green','✓','All active months and machines are under the capacity cap — plan is feasible.']);
+  al.push(['al-cyan','ℹ','System-wide utilization is low; welding has substantial idle capacity. The bottleneck is the production/inventory policy, not raw capacity.']);
+  el.innerHTML=`<div class="sec-t">Alerts & Findings</div>${al.map(a=>`<div class="alert ${a[0]}"><span>${a[1]}</span><span>${a[2]}</span></div>`).join('')}`;}
+let eligQ='';
+function renderEligibility(){const el=document.getElementById('page-eligibility');el.innerHTML=`<div class="sec-t">Eligibility Matrix <span class="n">— product × robot</span></div><div class="searchbar"><input placeholder="🔍 Search product..." value="${eligQ}" oninput="eligQ=this.value;renderEligTable()"></div><div class="tbl-wrap" id="eligTbl"></div>`;renderEligTable();}
+function renderEligTable(){const rows=PRODUCTS.filter(p=>p.name.toLowerCase().includes(eligQ.toLowerCase())).sort((a,b)=>a.group.localeCompare(b.group)||a.name.localeCompare(b.name)).slice(0,200);
+  document.getElementById('eligTbl').innerHTML=`<table><thead><tr><th>Product</th><th>Gr</th>${Array.from({length:10},(_,i)=>`<th>R${i+1}</th>`).join('')}<th>Man m</th><th>Rob m</th></tr></thead><tbody>
+   ${rows.map(p=>`<tr><td>${p.name}</td><td><span class="gbadge g${p.group}">${p.group}</span></td>${Array.from({length:10},(_,i)=>`<td style="color:${p.robots.includes(i+1)?'var(--green)':'var(--dim)'}">${p.robots.includes(i+1)?'●':'·'}</td>`).join('')}<td>${p.man_min}</td><td>${p.rob_min}</td></tr>`).join('')}</tbody></table>`;}
+/* ---------- COMPARE ---------- */
+let CMP={A:null,B:null};
+function loadCmp(slot){const inp=document.createElement('input');inp.type='file';inp.accept='.xlsx,.xls';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=ev=>{try{const wb=XLSX.read(ev.target.result,{type:'binary'});const r=parsePlanSheet(wb);if(!r){alert("'Production Plan' sheet not found");return;}CMP[slot]={plan:r.rows,year:r.year,name:f.name};renderCompare();}catch(err){alert('Could not read: '+err.message);}};rd.readAsBinaryString(f);};inp.click();}
+function useCurrentAsCmp(slot){if(!PLAN.length){alert('No active dataset.');return;}CMP[slot]={plan:JSON.parse(JSON.stringify(PLAN)),year:YEAR,name:(SOURCE==='model'?FILENAME:'Live '+(ENTRY==='month'?monthLabel(curMonth):'year'))||'current'};renderCompare();}
+function clearCmp(slot){CMP[slot]=null;renderCompare();}
+function renderCompare(){const el=document.getElementById('page-compare');if(!el)return;
+  const slotCard=(slot)=>{const c=CMP[slot];return `<div class="cmp-slot ${c?'filled':''}"><div style="font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;color:${slot==='A'?'var(--cyan)':'var(--purple)'}">PLAN ${slot}</div>
+    ${c?`<div style="margin:8px 0;font-size:.95rem">${c.name}</div><div style="font-family:var(--mono);font-size:.6rem;color:var(--dim2)">${new Set(c.plan.map(r=>r.name)).size} products · year ${c.year}</div><button class="btn btn-ghost" style="margin-top:10px" onclick="clearCmp('${slot}')">Remove</button>`
+      :`<div style="color:var(--dim);margin:10px 0;font-size:.85rem">No plan loaded</div><button class="btn btn-go" onclick="loadCmp('${slot}')">Load .xlsx</button> <button class="btn btn-ghost" onclick="useCurrentAsCmp('${slot}')">Use current</button>`}</div>`;};
+  let body=`<div class="sec-t">Compare Plans <span class="n">— e.g. forecast-driven vs realized-demand, or v7 vs v8</span></div>
+   <div class="grid2">${slotCard('A')}${slotCard('B')}</div>`;
+  if(CMP.A&&CMP.B){const a=agg(CMP.A.plan),b=agg(CMP.B.plan);
+    const peakOf=pl=>{let mx=0;for(let m=0;m<12;m++){const mm=buildMonthMachines(m,pl).filter(x=>x.jobs.length);if(mm.length)mx=Math.max(mx,...mm.map(x=>x.util));}return mx*100;};
+    const pa=peakOf(CMP.A.plan),pb=peakOf(CMP.B.plan);
+    const row=(label,va,vb,unit,better)=>{const d=vb-va;const good=better==='low'?d<0:d>0;const cls=d===0?'':(good?'delta-up':'delta-down');
+      return `<tr><td>${label}</td><td>${fmtN(va)}${unit||''}</td><td>${fmtN(vb)}${unit||''}</td><td class="${cls}">${d>0?'+':''}${fmtN(d)}${unit||''}</td></tr>`;};
+    body+=`<div class="sec-t">Side-by-Side</div><div class="tbl-wrap"><table><thead><tr><th>Metric</th><th>Plan A</th><th>Plan B</th><th>Δ (B−A)</th></tr></thead><tbody>
+      ${row('Total demand',a.dem,b.dem,'')}${row('Total production',a.prod,b.prod,'')}
+      ${row('Fill rate',a.fill.toFixed(1),b.fill.toFixed(1),'%','high')}${row('Unmet demand',a.unmet,b.unmet,'','low')}
+      ${row('Ending inventory',a.inv,b.inv,'','low')}${row('Robot units',a.rob,b.rob,'')}${row('Manual units',a.man,b.man,'')}
+      ${row('Peak utilization',pa.toFixed(0),pb.toFixed(0),'%','low')}</tbody></table></div>
+      <div class="grid2" style="margin-top:16px">
+        <div class="card"><h3>Production by Month</h3><div class="sub">A vs B</div>${lineChart([{vals:monthSeries(r=>r.production,CMP.A.plan),color:'var(--cyan)',label:'A'},{vals:monthSeries(r=>r.production,CMP.B.plan),color:'var(--purple)',label:'B'}],'')}</div>
+        <div class="card"><h3>Ending Inventory by Month</h3><div class="sub">A vs B</div>${lineChart([{vals:monthSeries(r=>r.endInv,CMP.A.plan),color:'var(--cyan)',label:'A'},{vals:monthSeries(r=>r.endInv,CMP.B.plan),color:'var(--purple)',label:'B'}],'')}</div>
+      </div>
+      <div class="card" style="margin-top:16px"><h3>Demand by Month</h3><div class="sub">A vs B — e.g. forecast vs real sales</div>${lineChart([{vals:monthSeries(r=>r.demand,CMP.A.plan),color:'var(--cyan)',label:'A'},{vals:monthSeries(r=>r.demand,CMP.B.plan),color:'var(--purple)',label:'B'}],'')}</div>`;
+  } else body+=`<div class="empty" style="margin-top:30px">Load a plan into both A and B to compare.</div>`;
+  el.innerHTML=body;}
+/* ---------- drawer / orders ---------- */
+function openDrawer(){document.getElementById('drawer').classList.add('on');document.getElementById('drawerBg').classList.add('on');renderOrderList();}
+function closeDrawer(){document.getElementById('drawer').classList.remove('on');document.getElementById('drawerBg').classList.remove('on');}
+function setEntry(e){ENTRY=e;document.getElementById('seg-month').classList.toggle('on',e==='month');document.getElementById('seg-year').classList.toggle('on',e==='year');}
+function setGroup(g){curGroup=g;document.querySelectorAll('#gtabs div').forEach(d=>d.classList.toggle('on',d.dataset.g===g));renderOrderList();}
+function renderOrderList(){const q=(document.getElementById('osearch').value||'').toLowerCase();const list=PRODUCTS.filter(p=>(curGroup==='ALL'||p.group===curGroup)&&p.name.toLowerCase().includes(q));
+  document.getElementById('olist').innerHTML=list.map(p=>{const qty=orders[p.name]||0;const r=qty>0?route(p,qty):null;const tag=r==='robot'?`<span class="route-tag rt-rob">R${p.robots.join('/')}</span>`:r==='manual'?`<span class="route-tag rt-man">MANUAL</span>`:`<span class="route-tag" style="opacity:.25">—</span>`;
+    return `<div class="orow"><span class="gbadge g${p.group}">${p.group}</span><div class="nm">${p.name}<div class="meta">man ${p.man_min} · rob ${p.rob_min} min</div></div>${tag}<input type="number" min="0" value="${qty||''}" placeholder="0" oninput="setQty('${p.name.replace(/'/g,"\\'")}',this.value)"></div>`;}).join('')||'<div class="empty">no match</div>';}
+function setQty(n,v){const x=Math.max(0,parseInt(v)||0);if(x)orders[n]=x;else delete orders[n];}
+function loadExample(){orders={};PRODUCTS.filter(p=>p.group==='A').slice(0,9).forEach(p=>orders[p.name]=p.rob_min<2?1600:650);PRODUCTS.filter(p=>p.group==='B').slice(0,5).forEach(p=>orders[p.name]=35);PRODUCTS.filter(p=>p.group==='C').slice(0,7).forEach(p=>orders[p.name]=14);SOURCE='live';FILENAME='';buildLivePlan();updateStatus();renderAll();}
+function clearAll(){orders={};PLAN=[];SOURCE='live';FILENAME='';updateStatus();renderAll();renderOrderList();}
+function loadOrdersXlsx(file){const rd=new FileReader();rd.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'binary'});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1});orders={};let hit=0;
+  rows.forEach(r=>{if(!r||r.length<2)return;const nm=String(r[0]||'').trim().replace(/\s+/g,' ');const q=parseInt(r[1]);const m=byName[nm]?nm:(PRODUCTS.find(p=>p.name.toLowerCase()===nm.toLowerCase())||{}).name;if(m&&q>0){orders[m]=q;hit++;}});
+  SOURCE='live';FILENAME='';buildLivePlan();updateStatus();renderAll();renderOrderList();alert(hit+' products loaded.');}catch(err){alert('Could not read: '+err.message);}};rd.readAsBinaryString(file);}
+const TITLES={overview:['Overview','FACTORY OVERVIEW'],annual:['Annual Review','YEAR-END REVIEW'],compare:['Compare Plans','PLAN COMPARISON'],schedule:['Monthly Schedule','MONTHLY SCHEDULE'],plan:['Plan Detail','PLAN DETAIL'],products:['Products','PRODUCTS'],resources:['Machines','RESOURCES'],inventory:['Inventory','INVENTORY'],alerts:['Alerts','ALERTS'],eligibility:['Eligibility','ELIGIBILITY']};
+function go(pg){document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));document.getElementById('page-'+pg).classList.add('on');document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('on',n.dataset.pg===pg));document.getElementById('ptitle').childNodes[0].nodeValue=TITLES[pg][0];document.getElementById('psub').textContent=TITLES[pg][1];}
+init();
+</script>
+</body>
+</html>
